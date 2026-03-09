@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="FlowState PM"/>
+<meta name="theme-color" content="#0a0c0f"/>
+<title>FlowState PM</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0a0c0f;color:#c8d4e0;font-family:'DM Mono','Courier New',monospace;min-height:100vh}
+button,input,textarea,select{font-family:'DM Mono','Courier New',monospace;cursor:pointer}
+input::placeholder,textarea::placeholder{color:#2a4060}
+a{cursor:pointer;text-decoration:none}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:#0a0c0f}
+::-webkit-scrollbar-thumb{background:#1e2a38;border-radius:2px}
+#nav{position:sticky;top:0;z-index:100;background:#080b0e;border-bottom:1px solid #1a2535;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;gap:8px}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-icon{background:#1a6ef5;width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px}
+.logo-text{font-family:'Bebas Neue','Arial',sans-serif;font-size:17px;letter-spacing:2px;color:#e8f4ff}
+.tabs{display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{background:transparent;border:1px solid transparent;color:#4a6080;padding:5px 10px;border-radius:5px;font-size:9px;letter-spacing:.5px;text-transform:uppercase;position:relative;opacity:.75;transition:opacity .1s;white-space:nowrap}
+.tab.active{background:#1a2535;border-color:#2a4060;color:#7eb8ff;opacity:1}
+.badge{position:absolute;top:-3px;right:-3px;background:#ff4d4d;color:#fff;font-size:7px;border-radius:7px;padding:0 3px;line-height:12px;font-weight:700}
+.view{padding:14px;max-width:1400px;margin:0 auto;display:none}
+.view.active{display:block}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.stat-card{background:#0d1420;border-radius:7px;padding:12px 14px;animation:fadeIn .3s ease forwards}
+.stat-label{font-size:9px;color:#4a6a8a;letter-spacing:1px;margin-bottom:3px}
+.stat-val{font-family:'Bebas Neue','Arial',sans-serif;font-size:20px;line-height:1}
+.dash-grid{display:grid;grid-template-columns:1fr 270px;gap:14px}
+.card{background:#0d1420;border:1px solid #1a2535;border-radius:8px;padding:14px}
+.proj-card{background:#0d1420;border:1px solid #1a2535;border-radius:7px;padding:12px 14px;cursor:pointer;transition:all .15s ease;margin-bottom:7px}
+.proj-card:hover{background:#111820;border-color:#2a5080;transform:translateY(-1px)}
+.proj-card.expanded{background:#111820;border-color:#2a5080}
+.tag{background:#0a1825;border:1px solid #1a3050;color:#4a7090;font-size:8px;padding:1px 5px;border-radius:3px;display:inline-block}
+.badge-co{background:#c678dd11;border:1px solid #c678dd44;color:#c678dd;font-size:8px;padding:1px 5px;border-radius:3px;display:inline-block}
+.badge-mat{background:#ff4d4d11;border:1px solid #ff4d4d55;color:#ff4d4d;font-size:8px;padding:1px 5px;border-radius:3px;display:inline-block}
+.prog-bar{background:#0a1018;border-radius:2px;height:3px;margin:3px 0}
+.prog-fill{height:3px;background:linear-gradient(90deg,#1a6ef5,#00c875);border-radius:2px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.section-btns{display:flex;gap:5px;margin:9px 0}
+.sec-btn{flex:1;padding:7px;border-radius:5px;font-size:9px;border:1px solid #1a2535;background:#080e18;color:#3a5570;cursor:pointer;font-family:inherit;transition:all .1s}
+.co-row{background:#080e18;border-radius:4px;padding:7px 9px;margin-bottom:4px;transition:background .15s}
+.co-row:hover{background:#0d1825}
+.mat-row{background:#080e18;border-radius:4px;padding:7px 9px;margin-bottom:4px;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;transition:background .15s}
+.mat-row:hover{background:#0d1825}
+.mat-status{font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;user-select:none;white-space:nowrap}
+.ibt{background:transparent;border:1px solid #1a2535;color:#4a6080;width:22px;height:22px;border-radius:4px;font-size:11px;display:inline-flex;align-items:center;justify-content:center;opacity:.65;transition:all .1s;font-family:inherit}
+.ibt:hover{opacity:1;background:#1a2535}
+.ibt.danger{border-color:#2e1a1a;color:#6a2a2a}
+.ibt.danger:hover{background:#2e1a1a;color:#ff6b6b}
+.modal-overlay{position:fixed;inset:0;background:#000c;z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-box{background:#0d1420;border:1px solid #1a2e48;border-radius:10px;padding:24px;width:500px;max-width:100%;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Bebas Neue','Arial',sans-serif;font-size:22px;letter-spacing:2px}
+.fl-label{font-size:9px;color:#3a6a8a;letter-spacing:1.5px;margin-bottom:5px}
+.inp{width:100%;background:#060c14;border:1px solid #1a2e48;color:#c8d4e0;border-radius:5px;padding:8px 10px;font-size:11px;outline:none;font-family:inherit}
+.inp:focus{border-color:#2a5080}
+.tog-btn{flex:1;padding:8px;border-radius:5px;font-size:10px;border:1px solid #1a2e48;background:#060c14;color:#2a4060;cursor:pointer;font-family:inherit;transition:all .1s}
+.modal-btns{display:flex;gap:10px;margin-top:18px}
+.btn-cancel{flex:1;padding:10px;background:transparent;border:1px solid #1a2e48;color:#3a5570;border-radius:6px;font-family:inherit;font-size:11px}
+.filter-btn{padding:2px 7px;border-radius:3px;font-size:9px;background:#0d1420;border:1px solid #1a2535;color:#3a5570;cursor:pointer;font-family:inherit}
+.filter-btn.active{background:#1a3a5a;border-color:#2a5a8a;color:#7eb8ff}
+.task-row{display:flex;align-items:flex-start;gap:7px;padding:5px;border-radius:4px;cursor:pointer;margin-bottom:2px;transition:background .1s}
+.task-row:hover{background:#0d1825}
+.chk{width:13px;height:13px;border:1.5px solid #2a4060;border-radius:3px;flex-shrink:0;background:transparent;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .1s}
+.sub-card{background:#0d1420;border:1px solid #1a2535;border-radius:8px;padding:14px}
+.focus-task{display:flex;align-items:center;gap:11px;padding:9px;border-radius:5px;cursor:pointer;margin-bottom:4px;border:1px solid transparent;transition:all .1s}
+.focus-task:hover{background:#0d1825}
+.focus-task.next{background:#0a1825;border-color:#1a3a5a}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.pulse{animation:pulse 2s infinite}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sidebar{display:flex;flex-direction:column;gap:11px}
+@media(max-width:700px){.dash-grid{grid-template-columns:1fr}.grid5{grid-template-columns:repeat(3,1fr)}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="nav">
+  <div class="logo">
+    <div class="logo-icon">🔧</div>
+    <div class="logo-text">FlowState PM</div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div style="font-size:8px;color:#1a3050;flex-shrink:0">💾</div>
+</div>
+<div id="view-dashboard" class="view active"></div>
+<div id="view-materials" class="view"></div>
+<div id="view-subs" class="view"></div>
+<div id="view-standup" class="view"></div>
+<div id="view-focus" class="view"></div>
+<div id="modal" class="modal-overlay" style="display:none" onclick="closeModal()"></div>
+<script>
+const SEED_PROJECTS=[
+  {id:1,name:"Riverside Medical Center",type:"pm",phase:"Rough-In",bid_due:null,deadline:"2026-05-15",value:2400000,progress:42,priority:"high",urgent_task:"Schedule pressure test with GC",status:"on_track",tags:["Medical","3-story"],
+    change_orders:[
+      {id:"CO-001",desc:"Added isolation valves at OR suites",value:18400,status:"approved",submitted_by:"J. Torres",approved_by:"GC - R. Walsh",date:"2026-02-10"},
+      {id:"CO-002",desc:"Reroute main stack structural conflict",value:7250,status:"in_progress",submitted_by:"J. Torres",approved_by:"",date:"2026-02-28"},
+      {id:"CO-003",desc:"Additional hose bibs per owner request",value:3100,status:"in_progress",submitted_by:"M. Chen",approved_by:"",date:"2026-03-01"},
+    ],
+    materials:[
+      {id:"M-001",item:"4in Cast Iron DWV pipe (200 LF)",supplier:"Ferguson",needed_by:"2026-03-12",status:"ordered",ordered_by:"J. Torres",notes:"PO #4471"},
+      {id:"M-002",item:"3in Isolation valves (24 ea)",supplier:"Winsupply",needed_by:"2026-03-10",status:"need_to_order",ordered_by:"",notes:"For OR suites CO-001"},
+      {id:"M-003",item:"Hub drains 6in (12 ea)",supplier:"Ferguson",needed_by:"2026-03-20",status:"delivered",ordered_by:"M. Chen",notes:""},
+    ]},
+  {id:2,name:"Harbor View Apartments",type:"both",phase:"Estimating",bid_due:"2026-03-18",deadline:"2026-07-30",value:870000,progress:15,priority:"urgent",urgent_task:"Finish fixture count - Bid due in 10 days",status:"at_risk",tags:["Multi-family","60-unit"],change_orders:[],materials:[]},
+  {id:3,name:"Eastfield High School",type:"pm",phase:"Underground",bid_due:null,deadline:"2026-06-01",value:1150000,progress:68,priority:"medium",urgent_task:"RFI #14 response pending from engineer",status:"on_track",tags:["Education","New Build"],
+    change_orders:[
+      {id:"CO-001",desc:"Underground depth change per geotech",value:12800,status:"approved",submitted_by:"J. Torres",approved_by:"Engr. D. Park",date:"2026-01-20"},
+      {id:"CO-002",desc:"Kitchen grease interceptor upgrade",value:9600,status:"approved",submitted_by:"M. Chen",approved_by:"Owner S. Bell",date:"2026-02-05"},
+    ],
+    materials:[
+      {id:"M-001",item:"6in PVC SDR 35 (500 LF)",supplier:"HD Supply",needed_by:"2026-03-15",status:"ordered",ordered_by:"J. Torres",notes:"PO #3892"},
+      {id:"M-002",item:"Grease interceptor 1500 gal",supplier:"Thermaco",needed_by:"2026-03-25",status:"need_to_order",ordered_by:"",notes:"Lead time 3 weeks - order NOW"},
+    ]},
+  {id:4,name:"Northgate Office Complex",type:"estimating",phase:"Bid Prep",bid_due:"2026-03-22",deadline:null,value:560000,progress:55,priority:"high",urgent_task:"Get sub quotes for medical gas",status:"needs_attention",tags:["Commercial","4-story"],change_orders:[],materials:[]},
+  {id:5,name:"Lakeview Senior Living",type:"pm",phase:"Top-Out",bid_due:null,deadline:"2026-04-10",value:1890000,progress:85,priority:"medium",urgent_task:"Final trim inspection scheduled",status:"on_track",tags:["Senior Care","72-unit"],
+    change_orders:[
+      {id:"CO-001",desc:"Barrier-free shower conversions (8 units)",value:22500,status:"approved",submitted_by:"J. Torres",approved_by:"Owner K. Diaz",date:"2026-02-14"},
+      {id:"CO-002",desc:"Roof drain leader reroute",value:4400,status:"in_progress",submitted_by:"M. Chen",approved_by:"",date:"2026-03-03"},
+    ],
+    materials:[
+      {id:"M-001",item:"ADA grab bars 42in (24 ea)",supplier:"Winsupply",needed_by:"2026-03-18",status:"need_to_order",ordered_by:"",notes:"Barrier-free CO - urgent"},
+      {id:"M-002",item:"Trim kits chrome (72 sets)",supplier:"Ferguson",needed_by:"2026-03-28",status:"ordered",ordered_by:"M. Chen",notes:"PO #5103"},
+      {id:"M-003",item:"Roof drain bodies (6 ea)",supplier:"HD Supply",needed_by:"2026-04-01",status:"delivered",ordered_by:"J. Torres",notes:""},
+    ]},
+];
+const SEED_SUBS=[
+  {id:1,name:"Rivera Excavation",trade:"Excavation",contact:"Mike Rivera",phone:"(602) 555-0182",email:"mike@riveraexc.com",status:"active",notes:"Reliable. 2-week lead time on mobilization."},
+  {id:2,name:"Desert Fire Protection",trade:"Fire Suppression",contact:"Sandra Okafor",phone:"(480) 555-0341",email:"s.okafor@desertfire.com",status:"active",notes:"Need signed sub contract for Lakeview."},
+  {id:3,name:"Southwest Medical Gas",trade:"Medical Gas",contact:"Tom Briggs",phone:"(602) 555-0509",email:"tbriggs@swmedgas.com",status:"quoting",notes:"Waiting on quote - follow up by 3/10."},
+  {id:4,name:"AZ Insulation Co.",trade:"Pipe Insulation",contact:"Luis Montoya",phone:"(480) 555-0774",email:"lmontoya@azinsulation.com",status:"active",notes:""},
+  {id:5,name:"Valley Concrete",trade:"Concrete",contact:"Dana Park",phone:"(623) 555-0198",email:"dpark@valleyconcrete.com",status:"inactive",notes:"Used on Eastfield footings. Good pricing."},
+];
+const SEED_TASKS=[
+  {id:1,time:"8:00 AM",task:"Harbor View fixture count",done:false,project:"Harbor View Apartments"},
+  {id:2,time:"10:00 AM",task:"Call GC re: Riverside pressure test",done:false,project:"Riverside Medical Center"},
+  {id:3,time:"11:30 AM",task:"Review Northgate sub quotes",done:false,project:"Northgate Office Complex"},
+  {id:4,time:"1:00 PM",task:"Eastfield RFI #14 follow-up",done:true,project:"Eastfield High School"},
+  {id:5,time:"3:00 PM",task:"Lakeview punch list review",done:false,project:"Lakeview Senior Living"},
+];
+let projects=load("fp_projects",SEED_PROJECTS);
+let tasks=load("fp_tasks",SEED_TASKS);
+let subs=load("fp_subs",SEED_SUBS);
+let standup=load("fp_standup",{wins:"",blockers:"",tomorrow:"",brainDump:""});
+let savedSD=load("fp_standups",[]);
+let currentView="dashboard";
+let projFilter="all";
+let matFilter="need_to_order";
+let subFilter="all";
+let subSearch="";
+let expandedProj=null;
+let expandedSec={};
+let modalData=null;
+function load(k,fb){try{const r=localStorage.getItem(k);return r?JSON.parse(r):fb}catch(e){return fb}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function fmt(n){return n>=1000000?`$${(n/1e6).toFixed(2)}M`:`$${(n/1e3).toFixed(0)}K`}
+function dU(d){return d?Math.ceil((new Date(d)-new Date())/86400000):null}
+function tdKey(){return new Date().toISOString().slice(0,10)}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function saveAll(){save("fp_projects",projects);save("fp_tasks",tasks);save("fp_subs",subs);save("fp_standup",standup);save("fp_standups",savedSD)}
+const SC={on_track:{bg:"#0d2e1a",text:"#2dff7a",label:"On Track"},at_risk:{bg:"#2e1a0d",text:"#ff8c2d",label:"At Risk"},needs_attention:{bg:"#2e1e0d",text:"#ffd12d",label:"Needs Attention"}};
+const PD={urgent:"#ff3d3d",high:"#ff9800",medium:"#4caf50"};
+const MS={need_to_order:{color:"#ff4d4d",bg:"#ff4d4d18",label:"NEED TO ORDER",icon:"🚨"},ordered:{color:"#ffd12d",bg:"#ffd12d18",label:"ORDERED",icon:"📦"},delivered:{color:"#2dff7a",bg:"#2dff7a18",label:"DELIVERED",icon:"✅"}};
+const SSC={active:"#2dff7a",quoting:"#ffd12d",inactive:"#4a6080"};
+function derived(){
+  const allM=projects.flatMap(p=>p.materials.map(m=>({...m,project:p.name})));
+  const allC=projects.flatMap(p=>p.change_orders.map(c=>({...c,project:p.name})));
+  return{totV:projects.reduce((s,p)=>s+p.value,0),bDue:projects.filter(p=>p.bid_due&&dU(p.bid_due)<=14).length,cIP:allC.filter(c=>c.status==="in_progress").length,cAp:allC.filter(c=>c.status==="approved").length,mNeed:allM.filter(m=>m.status==="need_to_order").length,mOrd:allM.filter(m=>m.status==="ordered").length,mCrit:allM.filter(m=>m.status!=="delivered"&&m.needed_by&&dU(m.needed_by)<=3).length,allM,allC,done:tasks.filter(t=>t.done).length};
+}
+function renderNav(){
+  const d=derived();
+  const tabs=[["dashboard","⬛ Dash"],["materials","📦 Mats"],["subs","👷 Subs"],["standup","📋 Log"],["focus","🎯 Focus"]];
+  document.getElementById("tabs").innerHTML=tabs.map(([v,l])=>`<button class="tab${currentView===v?" active":""}" onclick="switchView('${v}')">${l}${v==="materials"&&d.mNeed>0?`<span class="badge">${d.mNeed}</span>`:""}</button>`).join("");
+}
+function switchView(v){
+  document.querySelectorAll(".view").forEach(el=>el.classList.remove("active"));
+  document.getElementById("view-"+v).classList.add("active");
+  currentView=v;renderNav();renderView(v);
+}
+function renderView(v){
+  if(v==="dashboard")renderDashboard();
+  else if(v==="materials")renderMaterials();
+  else if(v==="subs")renderSubs();
+  else if(v==="standup")renderStandup();
+  else if(v==="focus")renderFocus();
+}
+function renderDashboard(){
+  const d=derived();
+  const filtered=projFilter==="all"?projects:projects.filter(p=>p.type===projFilter);
+  const el=document.getElementById("view-dashboard");
+  const stats=[{l:"PROJECTS",v:projects.length,c:"#1a6ef5",i:"📋"},{l:"PORTFOLIO",v:fmt(d.totV),c:"#00c875",i:"💰"},{l:"BIDS DUE",v:d.bDue,c:d.bDue>0?"#ff8c2d":"#4caf50",i:"📅",u:d.bDue>0},{l:"CHANGE ORDERS",v:`${d.cIP}/${d.cAp}`,c:"#c678dd",i:"🔄",u:d.cIP>0},{l:"TO ORDER",v:d.mNeed,c:d.mNeed>0?"#ff4d4d":"#4caf50",i:"📦",u:d.mNeed>0}];
+  el.innerHTML=`<div class="grid5">${stats.map((s,i)=>`<div class="stat-card" style="border:1px solid ${s.c}22;border-left:3px solid ${s.c};animation-delay:${i*.07}s"><div class="stat-label">${s.i} ${s.l}</div><div class="stat-val${s.u?" pulse":""}" style="color:${s.c}">${s.v}</div></div>`).join("")}</div>
+  <div class="dash-grid"><div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+      <span style="font-family:'Bebas Neue',Arial,sans-serif;font-size:15px;letter-spacing:2px;color:#8ab4d4">ACTIVE PROJECTS</span>
+      <div style="display:flex;gap:4px">${[["all","All"],["pm","PM"],["estimating","Est"],["both","Both"]].map(([v,l])=>`<button class="filter-btn${projFilter===v?" active":""}" onclick="setProjFilter('${v}')">${l}</button>`).join("")}</div>
+    </div>
+    <div id="proj-list">${filtered.map(p=>renderProjCard(p)).join("")}</div>
+  </div>
+  <div class="sidebar">
+    <div class="card"><div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:14px;letter-spacing:2px;color:#8ab4d4;margin-bottom:8px">🧠 TODAY'S TASKS</div>
+      ${tasks.map(t=>`<div class="task-row" onclick="toggleTask(${t.id})" style="opacity:${t.done?.4:1}"><div class="chk" style="border-color:${t.done?"#2dff7a":"#2a4060"};background:${t.done?"#2dff7a22":"transparent"}">${t.done?`<span style="font-size:8px;color:#2dff7a">✓</span>`:""}</div><div><div style="font-size:10px;color:${t.done?"#2a4a2a":"#a0c0d8"};text-decoration:${t.done?"line-through":"none"}">${esc(t.task)}</div><div style="font-size:8px;color:#2a4060">${t.time}</div></div></div>`).join("")}
+    </div>
+    <div class="card"><div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:14px;letter-spacing:2px;color:#8ab4d4;margin-bottom:8px">📊 BID PIPELINE</div>
+      ${projects.filter(p=>p.bid_due).map(p=>{const days=dU(p.bid_due),urg=days<=5?"#ff3d3d":days<=10?"#ff9800":"#ffd12d";return`<div style="margin-bottom:7px;padding-bottom:7px;border-bottom:1px solid #0f1c2a"><div style="display:flex;justify-content:space-between"><span style="font-size:10px;color:#8ab0cc">${esc(p.name.split(" ").slice(0,2).join(" "))}</span><span style="font-size:10px;color:${urg}">${days}d</span></div><div style="font-size:8px;color:#2a4a6a">${fmt(p.value)}</div></div>`;}).join("")}
+    </div>
+    <div class="card"><div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:14px;letter-spacing:2px;color:#8ab4d4;margin-bottom:6px">📝 BRAIN DUMP</div>
+      <textarea class="inp" rows="4" placeholder="Dump it here..." onchange="standup.brainDump=this.value;save('fp_standup',standup)" style="resize:none;height:75px;line-height:1.6;border-color:#1a2535;color:#8ab4d4">${esc(standup.brainDump)}</textarea>
+    </div>
+  </div></div>`;
+}
+function renderProjCard(p){
+  const st=SC[p.status],bD=dU(p.bid_due),dD=dU(p.deadline);
+  const pC=p.change_orders.filter(c=>c.status==="in_progress").length;
+  const pM=p.materials.filter(m=>m.status==="need_to_order").length;
+  const isE=expandedProj===p.id,oS=expandedSec[p.id]||"";
+  return `<div class="proj-card${isE?" expanded":""}" onclick="toggleProj(${p.id})">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px">
+      <div style="display:flex;align-items:center;gap:7px">
+        <div style="width:7px;height:7px;border-radius:50%;background:${PD[p.priority]};flex-shrink:0"></div>
+        <div><div style="font-size:13px;color:#d0e8ff;font-weight:500">${esc(p.name)}</div>
+          <div style="display:flex;gap:4px;margin-top:2px;flex-wrap:wrap">${p.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join("")}${pC>0?`<span class="badge-co">🔄 ${pC}</span>`:""}${pM>0?`<span class="badge-mat pulse">🚨 ${pM}</span>`:""}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;align-items:center"><span style="background:${st.bg};color:${st.text};font-size:8px;padding:2px 6px;border-radius:3px">${st.label}</span><span style="color:#00c875;font-size:11px">${fmt(p.value)}</span></div>
+    </div>
+    <div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:9px;color:#4a6a8a">${esc(p.phase).toUpperCase()}</span><span style="font-size:9px;color:#4a7090">${p.progress}%</span></div><div class="prog-bar"><div class="prog-fill" style="width:${p.progress}%"></div></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:9px;color:#3a6080">${p.bid_due?`<span style="color:${bD<=7?"#ff6b6b":bD<=14?"#ff9800":"#4a7090"}">📋 Bid: ${bD}d </span>`:""}${p.deadline?`<span>🏗️ ${dD}d</span>`:""}</div>
+      <span style="font-size:8px;color:#2a4a6a;background:#080e18;padding:2px 6px;border-radius:3px;border:1px solid #1a2535">${p.type==="both"?"PM+EST":p.type==="pm"?"PM":"EST"}</span>
+    </div>
+    ${isE?`<div onclick="event.stopPropagation()" style="margin-top:11px;padding-top:11px;border-top:1px solid #1a2535">
+      <div style="background:#080e18;border:1px solid #ff8c2d33;border-left:3px solid #ff8c2d;border-radius:4px;padding:7px 10px;margin-bottom:9px"><div style="font-size:9px;color:#ff8c2d;letter-spacing:1px;margin-bottom:2px">⚡ NEXT ACTION</div><div style="font-size:11px;color:#c8d4e0">${esc(p.urgent_task)}</div></div>
+      <div class="section-btns">
+        <button class="sec-btn" style="${oS==="co"?"background:#c678dd18;border-color:#c678dd;color:#c678dd":""}" onclick="toggleSec(${p.id},'co')">🔄 Change Orders${pC>0?`<span class="badge" style="position:relative;top:0;right:0;margin-left:4px">${pC}</span>`:""}</button>
+        <button class="sec-btn" style="${oS==="mat"?"background:#00c87518;border-color:#00c875;color:#00c875":""}" onclick="toggleSec(${p.id},'mat')">📦 Materials${pM>0?`<span class="badge" style="position:relative;top:0;right:0;margin-left:4px">${pM}</span>`:""}</button>
+      </div>
+      ${oS==="co"?renderCOSection(p):""}${oS==="mat"?renderMatSection(p):""}
+    </div>`:""}
+  </div>`;
+}
+function renderCOSection(p){
+  return `<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="font-size:9px;color:#c678dd">CHANGE ORDERS (${p.change_orders.length})</span><button onclick="openCOModal(${p.id},null)" style="background:#c678dd22;border:1px solid #c678dd66;color:#c678dd;padding:2px 9px;border-radius:3px;font-size:9px;font-family:inherit">+ Add CO</button></div>
+  ${p.change_orders.length>0?p.change_orders.map((co,idx)=>`<div class="co-row" style="border:1px solid ${co.status==="approved"?"#00c87533":"#c678dd33"}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px"><span style="font-size:8px;padding:1px 5px;border-radius:3px;background:${co.status==="approved"?"#00c87522":"#c678dd22"};color:${co.status==="approved"?"#00c875":"#c678dd"}">${co.status==="approved"?"✓ APPROVED":"⏳ PENDING"}</span><span style="font-size:8px;color:#3a5a7a">${esc(co.id)}</span></div><div style="display:flex;align-items:center;gap:3px"><span style="font-size:10px;color:${co.status==="approved"?"#00c875":"#c678dd"}">+${fmt(co.value)}</span><button class="ibt" onclick="toggleCO(${p.id},${idx})">⇄</button><button class="ibt" onclick="openCOModal(${p.id},${idx})">✎</button><button class="ibt danger" onclick="deleteCO(${p.id},${idx})">✕</button></div></div><div style="font-size:10px;color:#8ab0cc">${esc(co.desc)}</div></div>`).join("")+`<div style="text-align:right;font-size:9px;color:#3a5a7a;margin-top:4px">Subtotal: <span style="color:#00c875">+${fmt(p.change_orders.reduce((s,c)=>s+c.value,0))}</span></div>`:`<div style="font-size:9px;color:#1a3a5a;text-align:center;padding:9px;border:1px dashed #1a2535;border-radius:4px">No COs yet</div>`}
+  </div>`;
+}
+function renderMatSection(p){
+  return `<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="font-size:9px;color:#00c875">MATERIALS (${p.materials.length})</span><div style="display:flex;gap:4px"><button onclick="openUploadModal(${p.id})" style="background:#1a6ef522;border:1px solid #1a6ef566;color:#5595e8;padding:2px 8px;border-radius:3px;font-size:9px;font-family:inherit">⬆ Import</button><button onclick="openMatModal(${p.id},null)" style="background:#00c87522;border:1px solid #00c87566;color:#00c875;padding:2px 8px;border-radius:3px;font-size:9px;font-family:inherit">+ Add</button></div></div>
+  ${p.materials.length>0?p.materials.map((m,idx)=>{const ms=MS[m.status],nd=dU(m.needed_by),ov=m.status!=="delivered"&&nd!==null&&nd<=3;return`<div class="mat-row" style="border:1px solid ${ov?"#ff4d4d44":ms.color+"22"};border-left:3px solid ${ov?"#ff4d4d":ms.color}"><span class="mat-status" onclick="cycleMat(${p.id},${idx})" style="background:${ms.bg};color:${ms.color};border:1px solid ${ms.color}44">${ms.icon} ${ms.label}</span><div><div style="font-size:10px;color:#8ab0cc;margin-bottom:1px">${esc(m.item)}</div><div style="font-size:8px;color:#2a4060">${m.supplier?`🏢 ${esc(m.supplier)}  `:""}${m.needed_by?`<span style="color:${ov?"#ff4d4d":nd<=7?"#ff9800":"#2a4a6a"}">${ov?"🔥":"📅"} ${nd}d</span>`:""}${m.notes?`  📝 ${esc(m.notes)}`:""}</div></div><div style="display:flex;gap:3px"><button class="ibt" onclick="openMatModal(${p.id},${idx})">✎</button><button class="ibt danger" onclick="deleteMat(${p.id},${idx})">✕</button></div></div>`;}).join(""):`<div style="font-size:9px;color:#1a3a5a;text-align:center;padding:9px;border:1px dashed #1a2535;border-radius:4px">No materials yet</div>`}
+  </div>`;
+}
+function renderMaterials(){
+  const d=derived();
+  const el=document.getElementById("view-materials");
+  el.innerHTML=`<div class="grid3" style="margin-bottom:14px">${[{l:"NEED TO ORDER",v:d.mNeed,c:"#ff4d4d",i:"🚨",u:d.mNeed>0},{l:"ORDERED",v:d.mOrd,c:"#ffd12d",i:"📦"},{l:"CRITICAL ≤3d",v:d.mCrit,c:d.mCrit>0?"#ff4d4d":"#2dff7a",i:"🔥",u:d.mCrit>0}].map((s,i)=>`<div class="stat-card" style="border:1px solid ${s.c}22;border-left:3px solid ${s.c};animation-delay:${i*.07}s"><div class="stat-label">${s.i} ${s.l}</div><div class="stat-val${s.u?" pulse":""}" style="color:${s.c}">${s.v}</div></div>`).join("")}</div>
+  <div style="display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap;align-items:center"><span style="font-family:'Bebas Neue',Arial,sans-serif;font-size:15px;letter-spacing:2px;color:#8ab4d4;margin-right:4px">MATERIALS</span>${[["need_to_order","🚨 To Order","#ff4d4d"],["ordered","📦 Ordered","#ffd12d"],["delivered","✅ Delivered","#2dff7a"],["all","All","#4a6a8a"]].map(([v,l,c])=>`<button onclick="setMatFilter('${v}')" style="background:${matFilter===v?c+"18":"#0d1420"};border:1px solid ${matFilter===v?c:"#1a2535"};color:${matFilter===v?c:"#3a5570"};padding:3px 9px;border-radius:4px;font-size:9px;font-family:inherit;cursor:pointer">${l}</button>`).join("")}</div>
+  ${projects.map(p=>{const mats=matFilter==="all"?p.materials:p.materials.filter(m=>m.status===matFilter);if(!mats.length)return"";return`<div class="card" style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><div style="display:flex;align-items:center;gap:7px"><div style="width:6px;height:6px;border-radius:50%;background:${PD[p.priority]}"></div><span style="font-size:12px;color:#d0e8ff;font-weight:500">${esc(p.name)}</span><span style="font-size:8px;color:#2a4a6a;background:#080e18;padding:1px 6px;border-radius:3px;border:1px solid #1a2535">${esc(p.phase)}</span></div><div style="display:flex;gap:5px"><button onclick="openUploadModal(${p.id})" style="background:#1a6ef522;border:1px solid #1a6ef566;color:#5595e8;padding:3px 9px;border-radius:3px;font-size:9px;font-family:inherit">⬆ Import</button><button onclick="openMatModal(${p.id},null)" style="background:#00c87522;border:1px solid #00c87566;color:#00c875;padding:3px 9px;border-radius:3px;font-size:9px;font-family:inherit">+ Add</button></div></div>${mats.map(m=>{const ri=p.materials.indexOf(m),ms=MS[m.status],nd=dU(m.needed_by),ov=m.status!=="delivered"&&nd!==null&&nd<=3;return`<div class="mat-row" style="border:1px solid ${ov?"#ff4d4d44":ms.color+"22"};border-left:3px solid ${ov?"#ff4d4d":ms.color}"><span class="mat-status" onclick="cycleMat(${p.id},${ri})" style="background:${ms.bg};color:${ms.color};border:1px solid ${ms.color}44">${ms.icon} ${ms.label}</span><div><div style="font-size:11px;color:#c0d8f0;margin-bottom:1px">${esc(m.item)}</div><div style="font-size:8px;color:#2a4a6a">${m.supplier?`🏢 ${esc(m.supplier)}  `:""}${m.needed_by?`<span style="color:${ov?"#ff4d4d":nd<=7?"#ff9800":"#2a4a6a"}">${ov?"🔥":"📅"} ${nd}d</span>`:""}${m.notes?`  📝 ${esc(m.notes)}`:""}</div></div><div style="display:flex;gap:3px"><button class="ibt" style="width:25px;height:25px" onclick="openMatModal(${p.id},${ri})">✎</button><button class="ibt danger" style="width:25px;height:25px" onclick="deleteMat(${p.id},${ri})">✕</button></div></div>`;}).join("")}</div>`;}).join("")}`;
+}
+function renderSubs(){
+  const fS=subs.filter(s=>{const ms=subFilter==="all"||s.status===subFilter;const ss=!subSearch||[s.name,s.trade,s.contact].some(x=>x.toLowerCase().includes(subSearch.toLowerCase()));return ms&&ss;});
+  document.getElementById("view-subs").innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px"><div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-family:'Bebas Neue',Arial,sans-serif;font-size:19px;letter-spacing:2px;color:#f0a500">👷 SUBS</span><div style="display:flex;gap:4px">${[["all","All"],["active","Active"],["quoting","Quoting"],["inactive","Inactive"]].map(([v,l])=>`<button onclick="setSubFilter('${v}')" class="filter-btn${subFilter===v?" active":""}">${l}</button>`).join("")}</div></div><div style="display:flex;gap:6px;align-items:center"><input class="inp" style="width:150px;padding:5px 8px;font-size:10px" placeholder="Search…" value="${esc(subSearch)}" oninput="subSearch=this.value;renderSubs()"/><button onclick="openSubModal(null)" style="background:#f0a50022;border:1px solid #f0a50088;color:#f0a500;padding:5px 12px;border-radius:4px;font-size:9px;font-family:inherit;white-space:nowrap">+ Add Sub</button></div></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:9px">${fS.map((s,idx)=>`<div class="sub-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px"><div><div style="font-size:13px;color:#d0e8ff;font-weight:500;margin-bottom:2px">${esc(s.name)}</div><span class="tag">${esc(s.trade)}</span></div><div style="display:flex;align-items:center;gap:4px"><span style="font-size:8px;padding:2px 7px;border-radius:9px;background:${SSC[s.status]}22;color:${SSC[s.status]};border:1px solid ${SSC[s.status]}44">${s.status.toUpperCase()}</span><button class="ibt" onclick="openSubModal(${subs.indexOf(s)})">✎</button><button class="ibt danger" onclick="deleteSub(${subs.indexOf(s)})">✕</button></div></div><div style="display:flex;flex-direction:column;gap:4px;margin-bottom:7px"><div style="font-size:11px;color:#8ab0cc">👤 ${esc(s.contact)}</div>${s.phone?`<a href="tel:${esc(s.phone)}" style="font-size:10px;color:#1a6ef5">📞 ${esc(s.phone)}</a>`:""}${s.email?`<a href="mailto:${esc(s.email)}" style="font-size:10px;color:#1a6ef5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">✉️ ${esc(s.email)}</a>`:""}</div>${s.notes?`<div style="font-size:9px;color:#2a4060;background:#080e18;padding:5px 7px;border-radius:4px;border-left:2px solid #1a3050;line-height:1.5">${esc(s.notes)}</div>`:""}</div>`).join("")}${fS.length===0?`<div style="text-align:center;padding:40px;color:#1a3a5a;font-size:11px;grid-column:1/-1">No subs found.</div>`:""}</div>`;
+}
+function renderStandup(){
+  const d=derived();
+  document.getElementById("view-standup").innerHTML=`<div style="max-width:900px;margin:0 auto"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px"><div><div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:24px;letter-spacing:3px;color:#e8f4ff">DAILY STANDUP</div><div style="font-size:10px;color:#2a4a6a">${new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}</div></div><div style="display:flex;gap:8px;align-items:center"><span id="sv-msg" style="font-size:10px;color:#2dff7a;display:none">Saved ✓</span><button onclick="saveStandup()" style="background:#1a6ef522;border:1px solid #1a6ef588;color:#1a6ef5;padding:7px 14px;border-radius:5px;font-size:10px;font-family:inherit">💾 SAVE</button></div></div>
+  <div style="background:#080e18;border:1px solid #1a2535;border-radius:7px;padding:11px;margin-bottom:11px"><div style="font-size:9px;color:#4a6a8a;letter-spacing:1.5px;margin-bottom:7px">⚡ ALERTS TODAY</div><div style="display:flex;gap:6px;flex-wrap:wrap">${d.mNeed>0?`<span style="background:#ff4d4d18;border:1px solid #ff4d4d44;color:#ff4d4d;font-size:9px;padding:2px 8px;border-radius:3px">🚨 ${d.mNeed} to order</span>`:""}${d.cIP>0?`<span style="background:#c678dd18;border:1px solid #c678dd44;color:#c678dd;font-size:9px;padding:2px 8px;border-radius:3px">🔄 ${d.cIP} COs pending</span>`:""}${d.bDue>0?`<span style="background:#ff8c2d18;border:1px solid #ff8c2d44;color:#ff8c2d;font-size:9px;padding:2px 8px;border-radius:3px">📋 ${d.bDue} bids due soon</span>`:""}${d.mNeed===0&&d.cIP===0&&d.bDue===0?`<span style="color:#2dff7a;font-size:9px">✅ No urgent alerts</span>`:""}</div></div>
+  <div class="grid2" style="margin-bottom:11px">${[["wins","✅ WINS TODAY","#00c875","#00c87533","- Pressure test passed\n- …"],["blockers","🚧 BLOCKERS","#ff8c2d","#ff8c2d33","- Engineer hasn't responded\n- …"],["tomorrow","📅 TOMORROW","#1a6ef5","#1a6ef533","1. Order materials\n2. …"],["brainDump","🧠 BRAIN DUMP","#8ab4d4","#1a2535","Anything rattling around…"]].map(([key,lbl,clr,bc,ph])=>`<div class="card"><div style="font-size:9px;color:${clr};letter-spacing:1.5px;margin-bottom:6px">${lbl}</div><textarea class="inp" rows="4" placeholder="${ph}" onchange="standup['${key}']=this.value;save('fp_standup',standup)" style="height:90px;resize:none;line-height:1.7;border-color:${bc}">${esc(standup[key])}</textarea></div>`).join("")}</div>
+  ${savedSD.length>0?`<div class="card"><div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:14px;letter-spacing:2px;color:#4a6a8a;margin-bottom:9px">📁 HISTORY</div>${savedSD.map(s=>`<div style="background:#080e18;border:1px solid #1a2535;border-radius:5px;padding:8px 11px;margin-bottom:5px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:10px;color:#4a6a8a">${new Date(s.date).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})}</span><span style="font-size:8px;color:#1a3050">${esc(s.savedAt||"")}</span></div>${s.wins?`<div style="font-size:9px;color:#2a6a4a;margin-bottom:1px">✅ ${esc(s.wins.split("\n")[0].slice(0,60))}</div>`:""}${s.blockers?`<div style="font-size:9px;color:#6a4a2a;margin-bottom:1px">🚧 ${esc(s.blockers.split("\n")[0].slice(0,60))}</div>`:""}${s.tomorrow?`<div style="font-size:9px;color:#2a3a6a">📅 ${esc(s.tomorrow.split("\n")[0].slice(0,60))}</div>`:""}</div>`).join("")}</div>`:""}</div>`;
+}
+function renderFocus(){
+  const d=derived();
+  const nextIdx=tasks.findIndex(t=>!t.done);
+  document.getElementById("view-focus").innerHTML=`<div style="max-width:620px;margin:0 auto;padding:32px 4px"><div style="text-align:center;margin-bottom:28px"><div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:42px;letter-spacing:4px;color:#1a6ef5;line-height:1">FOCUS MODE</div><div style="color:#2a4a6a;font-size:10px;letter-spacing:2px;margin-top:4px">ONE THING AT A TIME</div></div>
+  ${d.mNeed>0?`<div style="background:#1a0808;border:2px solid #ff4d4d44;border-left:4px solid #ff4d4d;border-radius:9px;padding:12px 15px;margin-bottom:11px"><div style="font-size:9px;color:#ff4d4d;letter-spacing:2px;margin-bottom:7px">🚨 MATERIALS TO ORDER (${d.mNeed})</div>${d.allM.filter(m=>m.status==="need_to_order").map(m=>`<div style="font-size:11px;color:#d0a0a0;margin-bottom:2px;padding-left:7px;border-left:2px solid #ff4d4d44">${esc(m.item)} <span style="color:#6a3a3a;font-size:9px">— ${esc(m.project.split(" ").slice(0,2).join(" "))}</span></div>`).join("")}<button onclick="switchView('materials')" style="margin-top:7px;background:#ff4d4d22;border:1px solid #ff4d4d66;color:#ff4d4d;padding:3px 11px;border-radius:3px;font-size:9px;font-family:inherit">GO TO MATERIALS →</button></div>`:""}
+  <div class="card" style="margin-bottom:11px"><div style="font-family:'Bebas Neue',Arial,sans-serif;font-size:15px;letter-spacing:2px;color:#8ab4d4;margin-bottom:11px">TODAY'S QUEUE</div>${tasks.map((t,i)=>`<div class="focus-task${i===nextIdx?" next":""}" onclick="toggleTask(${t.id})" style="opacity:${t.done?.3:1}"><div style="width:18px;height:18px;border:2px solid ${t.done?"#2dff7a":"#1a4060"};border-radius:50%;flex-shrink:0;background:${t.done?"#2dff7a22":"transparent"};display:flex;align-items:center;justify-content:center">${t.done?`<span style="font-size:9px;color:#2dff7a">✓</span>`:""}</div><div style="flex:1"><div style="font-size:12px;color:${t.done?"#2a4a2a":"#a0c0d8"};text-decoration:${t.done?"line-through":"none"}">${esc(t.task)}</div><div style="font-size:9px;color:#2a4060;margin-top:1px">${t.time} · ${esc(t.project)}</div></div>${i===nextIdx?`<span style="font-size:8px;background:#1a3a5a;color:#5595e8;padding:2px 6px;border-radius:3px">NEXT UP</span>`:""}</div>`).join("")}</div>
+  <div style="text-align:center;color:#1a3a5a;font-size:10px;letter-spacing:1px">${d.done} of ${tasks.length} complete</div></div>`;
+}
+function setProjFilter(v){projFilter=v;renderDashboard()}
+function setMatFilter(v){matFilter=v;renderMaterials()}
+function setSubFilter(v){subFilter=v;renderSubs()}
+function toggleProj(id){expandedProj=expandedProj===id?null:id;expandedSec={};renderDashboard()}
+function toggleSec(pid,sec){expandedSec[pid]=expandedSec[pid]===sec?null:sec;renderDashboard()}
+function toggleTask(id){tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);saveAll();if(currentView==="dashboard")renderDashboard();else if(currentView==="focus")renderFocus()}
+function toggleCO(pid,idx){projects=projects.map(p=>{if(p.id!==pid)return p;const c=[...p.change_orders];c[idx]={...c[idx],status:c[idx].status==="approved"?"in_progress":"approved"};return{...p,change_orders:c}});saveAll();renderDashboard()}
+function deleteCO(pid,idx){projects=projects.map(p=>p.id!==pid?p:{...p,change_orders:p.change_orders.filter((_,i)=>i!==idx)});saveAll();renderDashboard();renderNav()}
+function cycleMat(pid,idx){const cy={need_to_order:"ordered",ordered:"delivered",delivered:"need_to_order"};projects=projects.map(p=>{if(p.id!==pid)return p;const m=[...p.materials];m[idx]={...m[idx],status:cy[m[idx].status]};return{...p,materials:m}});saveAll();renderView(currentView);renderNav()}
+function deleteMat(pid,idx){projects=projects.map(p=>p.id!==pid?p:{...p,materials:p.materials.filter((_,i)=>i!==idx)});saveAll();renderView(currentView);renderNav()}
+function deleteSub(idx){subs=subs.filter((_,i)=>i!==idx);saveAll();renderSubs()}
+function saveStandup(){const e={...standup,date:tdKey(),savedAt:new Date().toLocaleTimeString()};savedSD=[e,...savedSD.filter(s=>s.date!==tdKey())].slice(0,14);saveAll();const msg=document.getElementById("sv-msg");if(msg){msg.style.display="inline";setTimeout(()=>msg.style.display="none",2000)}}
+function closeModal(){document.getElementById("modal").style.display="none";modalData=null}
+function openModal(html){const m=document.getElementById("modal");m.innerHTML=`<div class="modal-box" onclick="event.stopPropagation()">${html}</div>`;m.style.display="flex"}
+function openCOModal(pid,editIdx){
+  const p=projects.find(x=>x.id===pid);
+  const co=editIdx!==null?p.change_orders[editIdx]:{desc:"",value:"",status:"in_progress",submitted_by:"",approved_by:"",date:tdKey()};
+  modalData={type:"co",pid,editIdx,coStatus:co.status};
+  openModal(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div><div class="modal-title" style="color:#c678dd">${editIdx!==null?"EDIT CO":"NEW CHANGE ORDER"}</div><div style="font-size:10px;color:#2a4a6a">${esc(p.name)}</div></div><button class="ibt" style="width:28px;height:28px;font-size:14px" onclick="closeModal()">✕</button></div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div><div class="fl-label">DESCRIPTION *</div><input class="inp" id="co-desc" value="${esc(co.desc)}" placeholder="e.g. Reroute 4in main"/></div>
+    <div class="grid2"><div><div class="fl-label">VALUE ($) *</div><input class="inp" id="co-val" type="number" value="${esc(co.value)}" placeholder="4500"/></div><div><div class="fl-label">DATE</div><input class="inp" id="co-date" type="date" value="${esc(co.date)}"/></div></div>
+    <div><div class="fl-label">STATUS</div><div style="display:flex;gap:8px"><button class="tog-btn" id="co-ip" onclick="setCOStatus('in_progress')" style="${co.status==="in_progress"?"background:#c678dd22;border-color:#c678dd;color:#c678dd":""}">⏳ In Progress</button><button class="tog-btn" id="co-ap" onclick="setCOStatus('approved')" style="${co.status==="approved"?"background:#00c87522;border-color:#00c875;color:#00c875":""}">✓ Approved</button></div></div>
+    <div class="grid2"><div><div class="fl-label">SUBMITTED BY</div><input class="inp" id="co-sub" value="${esc(co.submitted_by)}" placeholder="J. Torres"/></div><div><div class="fl-label">APPROVED BY</div><input class="inp" id="co-apb" value="${esc(co.approved_by)}" placeholder="GC - Walsh" ${co.status!=="approved"?"disabled style='opacity:.35'":""}/></div></div>
+  </div>
+  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button onclick="saveCO()" style="flex:2;padding:10px;background:#c678dd22;border:1px solid #c678dd88;color:#c678dd;border-radius:6px;font-family:inherit;font-size:11px">${editIdx!==null?"SAVE CHANGES":"+ ADD CO"}</button></div>`);
+}
+function setCOStatus(s){modalData.coStatus=s;document.getElementById("co-ip").style.cssText=s==="in_progress"?"background:#c678dd22;border-color:#c678dd;color:#c678dd":"";document.getElementById("co-ap").style.cssText=s==="approved"?"background:#00c87522;border-color:#00c875;color:#00c875":"";document.getElementById("co-apb").disabled=s!=="approved";document.getElementById("co-apb").style.opacity=s!=="approved"?.35:1}
+function saveCO(){const desc=document.getElementById("co-desc").value;const val=parseFloat(document.getElementById("co-val").value);if(!desc||!val)return;const entry={desc,value:val,status:modalData.coStatus,submitted_by:document.getElementById("co-sub").value,approved_by:document.getElementById("co-apb").value,date:document.getElementById("co-date").value};projects=projects.map(p=>{if(p.id!==modalData.pid)return p;const c=[...p.change_orders];if(modalData.editIdx!==null)c[modalData.editIdx]={...c[modalData.editIdx],...entry};else c.push({...entry,id:`CO-${String(c.length+1).padStart(3,"0")}`});return{...p,change_orders:c}});saveAll();closeModal();renderDashboard();renderNav()}
+function openMatModal(pid,editIdx){
+  const p=projects.find(x=>x.id===pid);
+  const m=editIdx!==null?p.materials[editIdx]:{item:"",supplier:"",needed_by:"",status:"need_to_order",ordered_by:"",notes:""};
+  modalData={type:"mat",pid,editIdx,matStatus:m.status};
+  openModal(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div><div class="modal-title" style="color:#00c875">${editIdx!==null?"EDIT MATERIAL":"NEW MATERIAL"}</div><div style="font-size:10px;color:#2a4a6a">${esc(p.name)}</div></div><button class="ibt" style="width:28px;height:28px;font-size:14px" onclick="closeModal()">✕</button></div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div><div class="fl-label">ITEM *</div><input class="inp" id="m-item" value="${esc(m.item)}" placeholder="4in Cast Iron DWV pipe"/></div>
+    <div class="grid2"><div><div class="fl-label">SUPPLIER</div><input class="inp" id="m-supp" value="${esc(m.supplier)}" placeholder="Ferguson"/></div><div><div class="fl-label">NEEDED BY</div><input class="inp" id="m-date" type="date" value="${esc(m.needed_by)}"/></div></div>
+    <div><div class="fl-label">STATUS</div><div style="display:flex;gap:5px">${[["need_to_order","🚨 Need to Order","#ff4d4d"],["ordered","📦 Ordered","#ffd12d"],["delivered","✅ Delivered","#2dff7a"]].map(([v,l,c])=>`<button class="tog-btn" id="ms-${v}" onclick="setMatStatus('${v}')" style="${m.status===v?`background:${c}22;border-color:${c};color:${c}`:""};font-size:8px;flex:1">${l}</button>`).join("")}</div></div>
+    <div class="grid2"><div><div class="fl-label">ORDERED BY</div><input class="inp" id="m-ordb" value="${esc(m.ordered_by)}" placeholder="J. Torres" ${m.status==="need_to_order"?"disabled style='opacity:.35'":""}/></div><div><div class="fl-label">NOTES / PO #</div><input class="inp" id="m-notes" value="${esc(m.notes)}" placeholder="PO #4471"/></div></div>
+  </div>
+  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button onclick="saveMat()" style="flex:2;padding:10px;background:#00c87522;border:1px solid #00c87588;color:#00c875;border-radius:6px;font-family:inherit;font-size:11px">${editIdx!==null?"SAVE CHANGES":"+ ADD MATERIAL"}</button></div>`);
+}
+function setMatStatus(s){modalData.matStatus=s;[["need_to_order","#ff4d4d"],["ordered","#ffd12d"],["delivered","#2dff7a"]].forEach(([v,c])=>{const b=document.getElementById("ms-"+v);if(b)b.style.cssText=v===s?`background:${c}22;border-color:${c};color:${c};font-size:8px;flex:1`:"font-size:8px;flex:1"});const ob=document.getElementById("m-ordb");if(ob){ob.disabled=s==="need_to_order";ob.style.opacity=s==="need_to_order"?.35:1}}
+function saveMat(){const item=document.getElementById("m-item").value;if(!item)return;const entry={item,supplier:document.getElementById("m-supp").value,needed_by:document.getElementById("m-date").value,status:modalData.matStatus,ordered_by:document.getElementById("m-ordb").value,notes:document.getElementById("m-notes").value};projects=projects.map(p=>{if(p.id!==modalData.pid)return p;const m=[...p.materials];if(modalData.editIdx!==null)m[modalData.editIdx]={...m[modalData.editIdx],...entry};else m.push({...entry,id:`M-${String(m.length+1).padStart(3,"0")}`});return{...p,materials:m}});saveAll();closeModal();renderView(currentView);renderNav()}
+function openSubModal(idx){
+  const s=idx!==null?subs[idx]:{name:"",trade:"",contact:"",phone:"",email:"",status:"active",notes:""};
+  modalData={type:"sub",idx,subStatus:s.status};
+  openModal(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div class="modal-title" style="color:#f0a500">${idx!==null?"EDIT SUB":"NEW SUBCONTRACTOR"}</div><button class="ibt" style="width:28px;height:28px;font-size:14px" onclick="closeModal()">✕</button></div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div class="grid2"><div><div class="fl-label">COMPANY *</div><input class="inp" id="s​​​​​​​​​​​​​​​​
+-name" value="${esc(s.name)}" placeholder="Rivera Excavation"/></div><div><div class="fl-label">TRADE</div><input class="inp" id="s-trade" value="${esc(s.trade)}" placeholder="Excavation"/></div></div>
+    <div class="grid2"><div><div class="fl-label">CONTACT</div><input class="inp" id="s-contact" value="${esc(s.contact)}" placeholder="Mike Rivera"/></div><div><div class="fl-label">PHONE</div><input class="inp" id="s-phone" value="${esc(s.phone)}" placeholder="(602) 555-0000"/></div></div>
+    <div><div class="fl-label">EMAIL</div><input class="inp" id="s-email" value="${esc(s.email)}" placeholder="contact@company.com"/></div>
+    <div><div class="fl-label">STATUS</div><div style="display:flex;gap:8px">${[["active","Active","#2dff7a"],["quoting","Quoting","#ffd12d"],["inactive","Inactive","#4a6080"]].map(([v,l,c])=>`<button class="tog-btn" id="ss-${v}" onclick="setSubStatus('${v}')" style="${s.status===v?`background:${c}22;border-color:${c};color:${c}`:""}">${l}</button>`).join("")}</div></div>
+    <div><div class="fl-label">NOTES</div><textarea class="inp" id="s-notes" rows="3" placeholder="Contract status, lead times…" style="height:60px;resize:none">${esc(s.notes)}</textarea></div>
+  </div>
+  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button onclick="saveSub()" style="flex:2;padding:10px;background:#f0a50022;border:1px solid #f0a50088;color:#f0a500;border-radius:6px;font-family:inherit;font-size:11px">${idx!==null?"SAVE CHANGES":"+ ADD SUB"}</button></div>`);
+}
+function setSubStatus(s){modalData.subStatus=s;[["active","#2dff7a"],["quoting","#ffd12d"],["inactive","#4a6080"]].forEach(([v,c])=>{const b=document.getElementById("ss-"+v);if(b)b.style.cssText=v===s?`background:${c}22;border-color:${c};color:${c}`:""})}
+function saveSub(){const name=document.getElementById("s-name").value;if(!name)return;const entry={name,trade:document.getElementById("s-trade").value,contact:document.getElementById("s-contact").value,phone:document.getElementById("s-phone").value,email:document.getElementById("s-email").value,status:modalData.subStatus,notes:document.getElementById("s-notes").value,id:Date.now()};if(modalData.idx!==null)subs[modalData.idx]={...subs[modalData.idx],...entry};else subs.push(entry);saveAll();closeModal();renderSubs()}
+function openUploadModal(pid){
+  const p=projects.find(x=>x.id===pid);
+  modalData={type:"upload",pid,parsed:[]};
+  openModal(`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><div><div class="modal-title" style="color:#00c875">IMPORT MATERIAL LIST</div><div style="font-size:10px;color:#1a4a3a">${esc(p.name)}</div></div><button class="ibt" style="width:28px;height:28px;font-size:14px" onclick="closeModal()">✕</button></div>
+  <div onclick="document.getElementById('up-file').click()" style="border:2px dashed #1a3a2a;border-radius:8px;padding:28px;text-align:center;cursor:pointer;background:#060c14;margin-bottom:10px"><div style="font-size:28px;margin-bottom:8px">📂</div><div style="font-size:12px;color:#4a8a6a;margin-bottom:4px">Tap to choose file</div><div style="font-size:10px;color:#1a4a3a">Supports .csv files</div><input id="up-file" type="file" accept=".csv" style="display:none" onchange="handleUpload(this)"/></div>
+  <div id="up-err" style="display:none;background:#2e0d0d;border:1px solid #ff4d4d55;border-radius:5px;padding:10px;margin-bottom:10px;font-size:11px;color:#ff6b6b"></div>
+  <div id="up-preview"></div>
+  <div style="background:#060c14;border:1px solid #1a2e48;border-radius:5px;padding:10px;margin-bottom:4px"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:9px;color:#2a5a4a">COLUMNS: item, supplier, needed_by, status, notes</div><button onclick="dlTemplate()" style="background:#00c87518;border:1px solid #00c87566;color:#00c875;padding:2px 8px;border-radius:3px;font-size:9px;font-family:inherit">⬇ Template</button></div></div>
+  <div class="modal-btns"><button class="btn-cancel" onclick="closeModal()">Cancel</button><button id="up-confirm" onclick="confirmUpload()" style="flex:2;padding:10px;background:#00c87522;border:1px solid #00c87588;color:#00c875;border-radius:6px;font-family:inherit;font-size:11px;display:none">⬆ IMPORT ITEMS</button></div>`);
+}
+function handleUpload(inp){const f=inp.files[0];if(!f)return;const err=document.getElementById("up-err");const prev=document.getElementById("up-preview");err.style.display="none";const normH=h=>h.toLowerCase().trim().replace(/[\s\-\/]+/g,"_").replace(/[^a-z0-9_]/g,"");const reader=new FileReader();reader.onload=e=>{const lines=e.target.result.split(/\r?\n/).filter(l=>l.trim());if(lines.length<2){err.textContent="No data rows found.";err.style.display="block";return}const headers=lines[0].split(",").map(normH);const rows=lines.slice(1).map(line=>{const vals=line.split(",");const m={};headers.forEach((h,i)=>m[h]=(vals[i]||"").trim());const sr=(m.status||"").toLowerCase();const status=sr.includes("deliver")?"delivered":sr.includes("order")&&!sr.includes("need")?"ordered":"need_to_order";return{item:m.item||m.description||m.material||"",supplier:m.supplier||m.vendor||"",needed_by:m.needed_by||m.need_by||"",status,ordered_by:m.ordered_by||"",notes:m.notes||m.po||""}}).filter(r=>r.item);if(!rows.length){err.textContent="No valid rows.";err.style.display="block";return}modalData.parsed=rows;const btn=document.getElementById("up-confirm");btn.style.display="block";btn.textContent=`⬆ IMPORT ${rows.length} ITEMS`;prev.innerHTML=`<div style="font-size:10px;color:#00c875;margin-bottom:8px">✅ ${rows.length} rows parsed</div>`};reader.readAsText(f)}
+function confirmUpload(){if(!modalData.parsed||!modalData.parsed.length)return;projects=projects.map(p=>{if(p.id!==modalData.pid)return p;const ex=p.materials,nn=ex.length;return{...p,materials:[...ex,...modalData.parsed.map((m,i)=>({...m,id:`M-${String(nn+i+1).padStart(3,"0")}`}))]}});saveAll();closeModal();renderView(currentView);renderNav()}
+function dlTemplate(){const csv=`item,supplier,needed_by,status,ordered_by,notes\n4in Cast Iron DWV pipe (200 LF),Ferguson,2026-04-01,need_to_order,,\n`;const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);a.download="material_template.csv";a.click()}
+renderNav();
+renderDashboard();
+</script>
+</body>
+</html>
